@@ -189,5 +189,5 @@ echo ""
 echo "🧹 Cleaning up temporary files..."
 rm -rf "$WORKDIR"
 rm -rf "$APPDIR"
+rm -f "$DEB_FILE"
 echo "🧹 Done. Enjoy mobirise.AppImage! 😃"
-
