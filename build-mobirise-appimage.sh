@@ -4,16 +4,16 @@
 #  Script for building Mobirise AppImage
 #  Author: Barko
 #  Contributor: SimOne 😊
-#  Source: https://download.mobirise.com/MobiriseSetup.deb
 #  License: MIT License
 #  Description: This script downloads, extracts, and creates
 #  an AppImage for the Mobirise application. Everything runs
 #  in the user's current working directory.
-#  Use --verbose to display detailed output;
-#  otherwise, only basic progress is shown.
+#  Supports --beta to build from the beta channel.
+#  Use --verbose to display detailed output; otherwise,
+#  only basic progress is shown.
 # ========================================================
 
-# Check if the --verbose parameter was provided
+# Check flags
 VERBOSE=false
 BETA=false
 
@@ -34,13 +34,18 @@ echo "========================================"
 echo " Script: Mobirise AppImage Builder"
 echo " Author: Barko"
 echo " Contributor: SimOne 😊"
+if [ "$BETA" = true ]; then
+    echo " Build:   Beta"
+else
+    echo " Build:   Stable"
+fi
 echo "========================================"
 echo ""
 
 APP="Mobirise"
 ROOT="$(pwd)"
 
-# URL to the .deb package and file paths
+# URL to the .deb package based on channel
 if [ "$BETA" = true ]; then
     DEB_URL="https://download.mobirise.com/beta/mobirise-beta.deb"
 else
@@ -116,7 +121,6 @@ if [ ! -f "$WORKDIR/debian-binary" ]; then
         tar xf data.tar.* 2>/dev/null
     fi
 
-    # Check if /opt/Mobirise actually exists
     if [ ! -d "opt/Mobirise" ]; then
         echo "❌ .deb structure does not contain opt/Mobirise. Check the contents."
         exit 1
@@ -134,14 +138,12 @@ echo "🔧 Preparing AppDir for $APP..."
 rm -rf "$APPDIR"
 mkdir -p "$APPDIR/opt/Mobirise"
 
-# Copy contents of opt/Mobirise from working directory
 if [ "$VERBOSE" = true ]; then
     cp -rv "opt/Mobirise/"* "$APPDIR/opt/Mobirise/"
 else
     cp -r "opt/Mobirise/"* "$APPDIR/opt/Mobirise/" 2>/dev/null
 fi
 
-# Find first .desktop file and rename it
 DESKTOP_SRC=$(ls usr/share/applications/*.desktop 2>/dev/null | head -n1)
 if [ -z "$DESKTOP_SRC" ] || [ ! -f "$DESKTOP_SRC" ]; then
     echo "❌ Did not find .desktop file in usr/share/applications."
@@ -149,7 +151,6 @@ if [ -z "$DESKTOP_SRC" ] || [ ! -f "$DESKTOP_SRC" ]; then
 fi
 cp "$DESKTOP_SRC" "$APPDIR/mobirise.desktop"
 
-# Copy icon (first .png in 256x256/apps)
 ICON_SRC=$(ls usr/share/icons/hicolor/256x256/apps/*.png 2>/dev/null | head -n1)
 if [ -n "$ICON_SRC" ] && [ -f "$ICON_SRC" ]; then
     cp "$ICON_SRC" "$APPDIR/mobirise.png"
@@ -165,21 +166,17 @@ cat > "$APPDIR/AppRun" << 'EOF'
 #!/bin/sh
 APP="mobirise"
 HERE="$(dirname "$(readlink -f "${0}")")"
-# Run executable from opt/Mobirise
 exec "${HERE}/opt/Mobirise/${APP}" "$@"
 EOF
 chmod +x "$APPDIR/AppRun"
 
 #
-# 7) Run appimagetool to build .AppImage
+# 7) Build .AppImage
 #
 echo "🚀 Building AppImage..."
 cd "$ROOT" || exit 1
 
-# If an older file exists, remove it to avoid rename issues
-if [ -f "$IMAGE_OUT" ]; then
-    rm -f "$IMAGE_OUT"
-fi
+[ -f "$IMAGE_OUT" ] && rm -f "$IMAGE_OUT"
 
 if [ "$VERBOSE" = true ]; then
     ARCH=x86_64 "$APPIMAGETOOL" -n --verbose "$APPDIR" "$IMAGE_OUT"
@@ -187,7 +184,6 @@ else
     ARCH=x86_64 "$APPIMAGETOOL" -n "$APPDIR" "$IMAGE_OUT" > /dev/null 2>&1
 fi
 
-# Check if AppImage was created
 if [ ! -f "$IMAGE_OUT" ]; then
     echo "❌ AppImage was not created. Check for errors above."
     exit 1
@@ -197,11 +193,9 @@ fi
 echo ""
 
 #
-# 8) Clean up temporary folders
+# 8) Clean up
 #
 echo "🧹 Cleaning up temporary files..."
-rm -rf "$WORKDIR"
-rm -rf "$APPDIR"
-rm -f "$DEB_FILE"
+rm -rf "$WORKDIR" "$APPDIR" "$DEB_FILE"
 echo "🧹 Done. Enjoy mobirise.AppImage! 😃"
 
