@@ -10,17 +10,17 @@ License: MIT
 
 ## ✨ Features
 
-- Downloads the latest release of Mobirise from Mobirise site
+- Downloads the latest release of Mobirise from the official site
 - Extracts the `.deb` package contents
 - Assembles a clean AppDir structure
 - Builds an AppImage using `appimagetool`
 - Works in your **current working directory**
 - Supports `--verbose` mode for detailed output
+- **Supports building from Mobirise beta releases** using the `--beta` parameter
 
 ---
 
 ## 🚀 Usage
 
 ```bash
-./build-mobirise-appimage.sh
-```
+./build-mobirise-appimage.sh [--beta] [--verbose]
