@@ -15,16 +15,25 @@
 
 # Check if the --verbose parameter was provided
 VERBOSE=false
-if [ "$1" = "--verbose" ]; then
-    VERBOSE=true
+BETA=false
+
+# Parse arguments
+while [ $# -gt 0 ]; do
+    case "$1" in
+        --verbose)
+            VERBOSE=true
+            ;;
+        --beta)
+            BETA=true
+            ;;
+    esac
     shift
-fi
+done
 
 echo "========================================"
 echo " Script: Mobirise AppImage Builder"
 echo " Author: Barko"
 echo " Contributor: SimOne 😊"
-echo " Source: https://download.mobirise.com/MobiriseSetup.deb"
 echo "========================================"
 echo ""
 
@@ -32,7 +41,11 @@ APP="Mobirise"
 ROOT="$(pwd)"
 
 # URL to the .deb package and file paths
-DEB_URL="https://download.mobirise.com/MobiriseSetup.deb"
+if [ "$BETA" = true ]; then
+    DEB_URL="https://download.mobirise.com/beta/mobirise-beta.deb"
+else
+    DEB_URL="https://download.mobirise.com/MobiriseSetup.deb"
+fi
 DEB_FILE="$ROOT/MobiriseSetup.deb"
 WORKDIR="$ROOT/mobirise_build"
 APPDIR="$ROOT/${APP}.AppDir"
@@ -191,3 +204,4 @@ rm -rf "$WORKDIR"
 rm -rf "$APPDIR"
 rm -f "$DEB_FILE"
 echo "🧹 Done. Enjoy mobirise.AppImage! 😃"
+
